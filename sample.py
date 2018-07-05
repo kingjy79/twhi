@@ -62,6 +62,7 @@ W_conv1 = tf.get_variable("W_conv1",shape=[5, 5, 1,32],initializer=tf.contrib.la
 b_conv1 = bias_variable([32]) # 0.1값을 (1*32)1차원배열에 넣는것?
 x_image = tf.reshape(x, [-1,28,28,1])
 h_conv1 = tf.nn.relu(conv2d(x_image, W_conv1) + b_conv1)
+#h_conv1 = tf.nn.signoid(conv2d(x_image, W_conv1) + b_conv1)
 h_pool1 = max_pool_2x2(h_conv1)
 W_conv2 = tf.get_variable("W_conv2",shape= [5, 5, 32,64],initializer=tf.contrib.layers.xavier_initializer())
 #W_conv2 = weight_variable([5, 5, 32, 64])#위의 전 컨볼루션 출력이 32이였으니 32를 그대로 받고 64개 출력한다?
@@ -80,7 +81,7 @@ b_conv3 = bias_variable([128])
 
 h_conv3 = tf.nn.relu(conv2d(h_pool2, W_conv3) + b_conv3)
 h_pool3 = max_pool_2x2(h_conv3)
-print(h_pool3)
+#print(h_pool3)
 #print(h_pool3)
 # 여기까지
 
@@ -118,12 +119,14 @@ y_conv=tf.nn.softmax(tf.matmul(h_fc1_drop, W_fc2) + b_fc2)
 
 
 cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y_conv), reduction_indices=[1]))
+# tf.reduce_sum; 벡터의 행과 열끼리 합쳐서 하나로 뭉침?
+# tf.reduce_mean; 벡터의 행과 열끼리 평균냄. 
 train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
 correct_prediction = tf.equal(tf.argmax(y_conv,1), tf.argmax(y_,1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 sess.run(tf.initialize_all_variables())
 for i in range(1000):
-  batch = mnist.train.next_batch(50)
+  batch = mnist.train.next_batch(64)#한묶음에 64개씩 처리?
   if i%100 == 0:
     train_accuracy = accuracy.eval(feed_dict={
         x:batch[0], y_: batch[1], keep_prob: 1.0})
