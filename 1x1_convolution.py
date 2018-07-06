@@ -53,42 +53,48 @@ def max_pool_2x2(x):
   return tf.nn.max_pool(x, ksize=[1, 2, 2, 1], #[batch ,높이 ,너비, RGB(그레이스케일이라 1?)]
                         strides=[1, 2, 2, 1], padding='SAME')
 
+def max_pool_3x3(x):
+  return tf.nn.max_pool(x, ksize=[1, 3, 3, 1], #[batch ,높이 ,너비, RGB(그레이스케일이라 1?)]
+                        strides=[1, 3, 3, 1], padding='SAME')
+
 
 
 
 #W_conv1 = weight_variable([5, 5, 1,32]) #4차원 배열을 넣어준거지,넣어준 값과 표준편차 0.1 차이로??
                                        #계속 생성?? 임의 느낌??[필터사이즈(2),채널, 커널(출력채널수)]
-W_conv1 = tf.get_variable("W_conv1",shape=[5, 5, 1,32],initializer=tf.contrib.layers.xavier_initializer())
-b_conv1 = bias_variable([32]) # 0.1값을 (1*32)1차원배열에 넣는것?
+W_conv1 = tf.get_variable("W_conv1",shape=[1, 1, 1,8],initializer=tf.contrib.layers.xavier_initializer())
+b_conv1 = bias_variable([8]) # 0.1값을 (1*32)1차원배열에 넣는것?
 x_image = tf.reshape(x, [-1,28,28,1])
 h_conv1 = tf.nn.relu(conv2d(x_image, W_conv1) + b_conv1)
 #h_conv1 = tf.nn.sigmoid(conv2d(x_image, W_conv1) + b_conv1)
 h_pool1 = max_pool_2x2(h_conv1)
-W_conv2 = tf.get_variable("W_conv2",shape= [5, 5, 32,64],initializer=tf.contrib.layers.xavier_initializer())
+print(h_pool1)
+W_conv2 = tf.get_variable("W_conv2",shape= [5, 5, 8,32],initializer=tf.contrib.layers.xavier_initializer())
 #W_conv2 = weight_variable([5, 5, 32, 64])#위의 전 컨볼루션 출력이 32이였으니 32를 그대로 받고 64개 출력한다?
 #W_conv2 = weight_variable([5, 5, 32, 32]) #커널*채널값이 커널이 된다? 적용하기위해 커널값은 고정을 시켜봄
-b_conv2 = bias_variable([64]) #커널 갯수를 따라 맞춘다?
+b_conv2 = bias_variable([32]) #커널 갯수를 따라 맞춘다?
 #b_conv2 = bias_variable([1024])#32*32
 
 h_conv2 = tf.nn.relu(conv2d(h_pool1, W_conv2) + b_conv2)
 #h_conv2 = tf.nn.sigmoid(conv2d(h_pool1, W_conv2) + b_conv2)
 h_pool2 = max_pool_2x2(h_conv2)
+print(h_pool2)
 # 3번 convolution 추가한것 
 #W_conv3 = weight_variable([5, 5, 64, 128])
 #W_conv3 = weight_variable([5, 5, 1024, 32])
-W_conv3 = tf.get_variable("W_conv3",shape= [5, 5, 64,128],initializer=tf.contrib.layers.xavier_initializer())
-b_conv3 = bias_variable([128])
+W_conv3 = tf.get_variable("W_conv3",shape= [5, 5, 32,64],initializer=tf.contrib.layers.xavier_initializer())
+b_conv3 = bias_variable([64])
 #b_conv3 = bias_variable([32768])
 
 h_conv3 = tf.nn.relu(conv2d(h_pool2, W_conv3) + b_conv3)
 #h_conv3 = tf.nn.sigmoid(conv2d(h_pool2, W_conv3) + b_conv3)
 
-h_pool3 = max_pool_2x2(h_conv3)
+#h_pool3 = max_pool_2x2(h_conv3)
 #print(h_pool3)
 #print(h_pool3)
 # 여기까지
 
-W_fc1 = weight_variable([4 * 4 * 128, 1024])
+W_fc1 = weight_variable([7 * 7 * 64, 1024])
 #W_fc1 = weight_variable([7 * 7 * 128, 1024])#1024면 괜찮더라? 이런 거임 걍쓰는 숫자
 b_fc1 = bias_variable([1024])
 
@@ -101,10 +107,10 @@ keep_prob = tf.placeholder(tf.float32)
 h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
 W_fc2 = weight_variable([1024, 10])
 '''
-h_pool3_flat = tf.reshape(h_pool3, [-1, 4*4*128])
-#h_pool2_flat = tf.reshape(h_pool2, [-1, 7*7*128])
-#h_fc1 = tf.nn.relu(tf.matmul(h_pool3_flat, W_fc1) + b_fc1)
-h_fc1 = tf.nn.sigmoid(tf.matmul(h_pool3_flat, W_fc1) + b_fc1)
+#h_pool3_flat = tf.reshape(h_pool3, [-1, 7*7*128])
+h_pool3_flat = tf.reshape(h_conv3, [-1, 7*7*64])
+h_fc1 = tf.nn.relu(tf.matmul(h_pool3_flat, W_fc1) + b_fc1)
+#h_fc1 = tf.nn.sigmoid(tf.matmul(h_pool3_flat, W_fc1) + b_fc1)
 
 keep_prob = tf.placeholder(tf.float32)
 h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
